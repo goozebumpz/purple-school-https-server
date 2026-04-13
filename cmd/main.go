@@ -4,17 +4,15 @@ import (
 	"net/http"
 	"purple-school/configs"
 	"purple-school/internal/auth"
-	"purple-school/internal/hello"
-	"purple-school/internal/random"
+	"purple-school/pkg/db"
 )
 
 func main() {
-	_ = configs.LoadConfig()
+	config := configs.LoadConfig()
+	_ = db.CreateDbConnection(config)
 	router := http.NewServeMux()
 
-	hello.NewHelloHandler(router)
-	random.NewRandomHandler(router)
-	auth.NewAuthHandler(router)
+	auth.NewAuthHandler(router, auth.HandlerDeps{Config: config})
 
 	server := http.Server{
 		Addr:    ":8081",
