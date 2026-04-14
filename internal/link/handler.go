@@ -5,6 +5,7 @@ import (
 	"net/http"
 	"purple-school/configs"
 	"purple-school/pkg/req"
+	"purple-school/pkg/res"
 )
 
 type HandlerDeps struct {
@@ -44,6 +45,13 @@ func (h *Handler) Create() http.HandlerFunc {
 
 		link := NewLink(body.Url)
 
+		createdLink, err := h.Repository.CreateLink(link)
+
+		if err != nil {
+			http.Error(w, err.Error(), http.StatusBadRequest)
+		}
+
+		res.JSON(w, createdLink, 201)
 	}
 }
 
