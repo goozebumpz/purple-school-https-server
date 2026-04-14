@@ -7,10 +7,10 @@ import (
 )
 
 type DB struct {
-	db *gorm.DB
+	*gorm.DB
 }
 
-func CreateDbConnection(conf *configs.Config) *DB {
+func NewDb(conf *configs.Config) *DB {
 	db, err := gorm.Open(postgres.Open(conf.Db.DSN), &gorm.Config{})
 
 	if err != nil {
