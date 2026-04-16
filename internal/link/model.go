@@ -29,3 +29,7 @@ func NewLink(url string) *Link {
 		Hash: createHash(10),
 	}
 }
+
+func (l *Link) GenerateNewHash() {
+	l.Hash = createHash(10)
+}

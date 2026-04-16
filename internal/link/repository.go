@@ -1,6 +1,13 @@
 package link
 
-import "purple-school/pkg/db"
+import (
+	"context"
+	"errors"
+	"fmt"
+	"purple-school/pkg/db"
+
+	"gorm.io/gorm"
+)
 
 type Repository struct {
 	Database *db.DB
@@ -20,4 +27,48 @@ func (repo *Repository) CreateLink(link *Link) (*Link, error) {
 	}
 
 	return link, nil
+}
+
+func (repo *Repository) GetByHash(hash string) (*Link, error) {
+	ctx := context.Background()
+	link, err := gorm.G[Link](repo.Database.DB).Where("hash = ?", hash).Last(ctx)
+
+	if err != nil {
+		return nil, err
+	}
+
+	return &link, nil
+}
+
+func (repo *Repository) CheckUniqueHash(hash string) bool {
+	ctx := context.Background()
+	_, err := gorm.G[Link](repo.Database.DB).Where("hash = ?", hash).Last(ctx)
+
+	if errors.Is(err, gorm.ErrRecordNotFound) {
+		return true
+	}
+
+	return false
+}
+
+func (repo *Repository) UpdateLink(hash string, body *UpdateRequest) (*Link, error) {
+	_, err := gorm.G[Link](repo.Database.DB).Where("hash = ?", hash).Update(context.Background(), "url", body.Url)
+
+	if err != nil {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			return nil, fmt.Errorf("link not found")
+		}
+		return nil, err
+	}
+
+	link, err := gorm.G[Link](repo.Database.DB).Where("hash = ?", hash).Last(context.Background())
+
+	if err != nil {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			return nil, fmt.Errorf("link not found")
+		}
+		return nil, err
+	}
+
+	return &link, nil
 }
