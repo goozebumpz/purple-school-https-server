@@ -72,3 +72,15 @@ func (repo *Repository) UpdateLink(hash string, body *UpdateRequest) (*Link, err
 
 	return &link, nil
 }
+
+func (repo *Repository) DeleteLink(hash string) (uint, error) {
+	ctx := context.Background()
+	link, err := gorm.G[Link](repo.Database.DB).Where("hash = ?").Last(ctx)
+	_, err = gorm.G[Link](repo.Database.DB).Where("hash = ?", hash).Delete(ctx)
+
+	if err != nil {
+		return 0, err
+	}
+
+	return link.ID, nil
+}
