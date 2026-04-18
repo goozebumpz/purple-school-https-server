@@ -5,5 +5,6 @@ type CreateRequest struct {
 }
 
 type UpdateRequest struct {
-	Url string `json:"url" validate:"required,url"`
+	Url  string `json:"url" validate:"required,url"`
+	Hash string `json:"hash"`
 }

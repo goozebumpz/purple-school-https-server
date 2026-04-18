@@ -4,9 +4,9 @@ import (
 	"context"
 	"errors"
 	"fmt"
-	"purple-school/pkg/db"
-
 	"gorm.io/gorm"
+	"gorm.io/gorm/clause"
+	"purple-school/pkg/db"
 )
 
 type Repository struct {
@@ -51,8 +51,9 @@ func (repo *Repository) CheckUniqueHash(hash string) bool {
 	return false
 }
 
-func (repo *Repository) UpdateLink(hash string, body *UpdateRequest) (*Link, error) {
-	_, err := gorm.G[Link](repo.Database.DB).Where("hash = ?", hash).Update(context.Background(), "url", body.Url)
+func (repo *Repository) UpdateLink(link *Link) (*Link, error) {
+	db := gorm.G[*Link](repo.Database.DB, clause.Returning{}).Where("id = ?", link.ID)
+	rowsAffected, err := db.Updates(context.Background(), link)
 
 	if err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
@@ -61,26 +62,22 @@ func (repo *Repository) UpdateLink(hash string, body *UpdateRequest) (*Link, err
 		return nil, err
 	}
 
-	link, err := gorm.G[Link](repo.Database.DB).Where("hash = ?", hash).Last(context.Background())
+	fmt.Println(rowsAffected)
 
-	if err != nil {
-		if errors.Is(err, gorm.ErrRecordNotFound) {
-			return nil, fmt.Errorf("link not found")
-		}
-		return nil, err
+	if rowsAffected == 0 {
+		return nil, fmt.Errorf("rows affected zero")
 	}
 
-	return &link, nil
+	return link, nil
 }
 
-func (repo *Repository) DeleteLink(hash string) (uint, error) {
+func (repo *Repository) DeleteLink(id uint) error {
 	ctx := context.Background()
-	link, err := gorm.G[Link](repo.Database.DB).Where("hash = ?").Last(ctx)
-	_, err = gorm.G[Link](repo.Database.DB).Where("hash = ?", hash).Delete(ctx)
+	_, err := gorm.G[Link](repo.Database.DB).Where("id = ?", id).Delete(ctx)
 
 	if err != nil {
-		return 0, err
+		return err
 	}
 
-	return link.ID, nil
+	return nil
 }
