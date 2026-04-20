@@ -4,6 +4,7 @@ import (
 	"gorm.io/gorm"
 	"net/http"
 	"purple-school/configs"
+	"purple-school/pkg/middleware"
 	"purple-school/pkg/req"
 	"purple-school/pkg/res"
 	"strconv"
@@ -26,9 +27,9 @@ func NewLinksHandler(router *http.ServeMux, deps HandlerDeps) {
 	}
 
 	router.HandleFunc("GET /{hash}", handler.GoTo())
-	router.HandleFunc("POST /link", handler.Create())
-	router.HandleFunc("PATCH /link/{id}", handler.Update())
-	router.HandleFunc("DELETE /link/{id}", handler.Delete())
+	router.Handle("POST /link", middleware.Token(handler.Create()))
+	router.Handle("PATCH /link/{id}", middleware.Token(handler.Update()))
+	router.Handle("DELETE /link/{id}", middleware.Token(handler.Delete()))
 }
 
 func (h *Handler) GoTo() http.HandlerFunc {
@@ -60,7 +61,6 @@ func (h *Handler) Create() http.HandlerFunc {
 			link.GenerateNewHash()
 			isUnique = h.Repository.CheckUniqueHash(link.Hash)
 		}
-
 		createdLink, err := h.Repository.CreateLink(link)
 
 		if err != nil {
@@ -116,6 +116,18 @@ func (h *Handler) Delete() http.HandlerFunc {
 			return
 		}
 
+		exists, err := h.Repository.ExistLink(uint(id))
+
+		if err != nil {
+			res.JSON(w, err.Error(), http.StatusNotFound)
+			return
+		}
+
+		if exists == false {
+			res.JSON(w, "Link not exists", http.StatusNotFound)
+			return
+		}
+
 		err = h.Repository.DeleteLink(uint(id))
 
 		if err != nil {
@@ -124,6 +136,5 @@ func (h *Handler) Delete() http.HandlerFunc {
 		}
 
 		res.JSON(w, nil, http.StatusOK)
-
 	}
 }

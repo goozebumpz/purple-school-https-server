@@ -3,25 +3,31 @@ package auth
 import (
 	"net/http"
 	"purple-school/configs"
+	"purple-school/pkg/middleware"
 	"purple-school/pkg/req"
 	"purple-school/pkg/res"
 )
 
 type HandlerDeps struct {
-	Config *configs.Config
+	Config      *configs.Config
+	AuthService *Service
 }
 
 type Handler struct {
-	Config *configs.Config
+	Config      *configs.Config
+	AuthService *Service
 }
 
 func NewAuthHandler(router *http.ServeMux, deps HandlerDeps) {
 	handler := &Handler{
-		Config: deps.Config,
+		Config:      deps.Config,
+		AuthService: deps.AuthService,
 	}
 
-	router.HandleFunc("POST /auth/login", handler.Login())
-	router.HandleFunc("POST /auth/register", handler.Register())
+	middlewares := middleware.ChainMiddlewares(middleware.CORS, middleware.Logging)
+
+	router.Handle("POST /auth/login", middlewares(handler.Login()))
+	router.Handle("POST /auth/register", middlewares(handler.Register()))
 }
 
 func (h *Handler) Login() http.HandlerFunc {
@@ -44,6 +50,13 @@ func (h *Handler) Register() http.HandlerFunc {
 			return
 		}
 
-		res.JSON(w, body, 200)
+		user, err := h.AuthService.Register(body.Email, body.Name, "")
+
+		if err != nil {
+			res.JSON(w, body, http.StatusInternalServerError)
+			return
+		}
+
+		res.JSON(w, user, 200)
 	}
 }

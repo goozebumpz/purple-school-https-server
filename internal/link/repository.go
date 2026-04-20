@@ -41,8 +41,7 @@ func (repo *Repository) GetByHash(hash string) (*Link, error) {
 }
 
 func (repo *Repository) CheckUniqueHash(hash string) bool {
-	ctx := context.Background()
-	_, err := gorm.G[Link](repo.Database.DB).Where("hash = ?", hash).Last(ctx)
+	_, err := gorm.G[Link](repo.Database.DB).Where("hash = ?", hash).First(context.Background())
 
 	if errors.Is(err, gorm.ErrRecordNotFound) {
 		return true
@@ -80,4 +79,14 @@ func (repo *Repository) DeleteLink(id uint) error {
 	}
 
 	return nil
+}
+
+func (repo *Repository) ExistLink(id uint) (bool, error) {
+	link, err := gorm.G[*Link](repo.Database.DB).Where("id = ?", id).First(context.Background())
+
+	if err != nil {
+		return false, err
+	}
+
+	return link != nil, nil
 }

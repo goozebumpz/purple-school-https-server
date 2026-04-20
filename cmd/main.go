@@ -6,6 +6,7 @@ import (
 	"purple-school/configs"
 	"purple-school/internal/auth"
 	"purple-school/internal/link"
+	"purple-school/internal/user"
 	"purple-school/pkg/db"
 )
 
@@ -15,7 +16,8 @@ func main() {
 	router := http.NewServeMux()
 
 	auth.NewAuthHandler(router, auth.HandlerDeps{
-		Config: config,
+		Config:      config,
+		AuthService: auth.NewService(user.NewUserRepository(database)),
 	})
 	link.NewLinksHandler(router, link.HandlerDeps{
 		Config:     config,

@@ -3,6 +3,7 @@ package main
 import (
 	"os"
 	"purple-school/internal/link"
+	"purple-school/internal/user"
 
 	"github.com/joho/godotenv"
 	"gorm.io/driver/postgres"
@@ -24,5 +25,5 @@ func main() {
 		panic(err)
 	}
 
-	db.AutoMigrate(&link.Link{})
+	db.AutoMigrate(&link.Link{}, &user.User{})
 }
