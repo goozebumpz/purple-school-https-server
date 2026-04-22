@@ -35,10 +35,18 @@ func (h *Handler) Login() http.HandlerFunc {
 		body, err := req.HandleBody[LoginRequest](w, r)
 
 		if err != nil {
+			res.JSON(w, err.Error(), 400)
 			return
 		}
 
-		res.JSON(w, body, 200)
+		user, err := h.AuthService.Login(body.Email, body.Password)
+
+		if err != nil {
+			res.JSON(w, err.Error(), 400)
+			return
+		}
+
+		res.JSON(w, user, 200)
 	}
 }
 
@@ -50,10 +58,10 @@ func (h *Handler) Register() http.HandlerFunc {
 			return
 		}
 
-		user, err := h.AuthService.Register(body.Email, body.Name, "")
+		user, err := h.AuthService.Register(body.Email, body.Name, body.Password)
 
 		if err != nil {
-			res.JSON(w, body, http.StatusInternalServerError)
+			res.JSON(w, err.Error(), http.StatusInternalServerError)
 			return
 		}
 
