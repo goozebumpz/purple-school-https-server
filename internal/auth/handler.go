@@ -3,6 +3,7 @@ package auth
 import (
 	"net/http"
 	"purple-school/configs"
+	"purple-school/pkg/jwt"
 	"purple-school/pkg/middleware"
 	"purple-school/pkg/req"
 	"purple-school/pkg/res"
@@ -46,7 +47,14 @@ func (h *Handler) Login() http.HandlerFunc {
 			return
 		}
 
-		res.JSON(w, user, 200)
+		token, err := jwt.NewJWT(h.Config.AuthConfig.Secret).Create(user.Email)
+
+		if err != nil {
+			res.JSON(w, err.Error(), http.StatusInternalServerError)
+			return
+		}
+
+		res.JSON(w, LoginResponse{Token: token}, 200)
 	}
 }
 
@@ -65,6 +73,13 @@ func (h *Handler) Register() http.HandlerFunc {
 			return
 		}
 
-		res.JSON(w, user, 200)
+		token, err := jwt.NewJWT(h.Config.AuthConfig.Secret).Create(user.Email)
+
+		if err != nil {
+			res.JSON(w, err.Error(), http.StatusInternalServerError)
+			return
+		}
+
+		res.JSON(w, RegisterResponse{Token: token}, 200)
 	}
 }
