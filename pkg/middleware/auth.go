@@ -22,6 +22,12 @@ func writeUnauthed(w http.ResponseWriter) {
 func Token(next http.Handler, config *configs.Config) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		tokenStr := r.Header.Get("Authorization")
+
+		if tokenStr == "" {
+			writeUnauthed(w)
+			return
+		}
+
 		token := strings.Split(tokenStr, " ")[1]
 		if token == "" {
 			writeUnauthed(w)

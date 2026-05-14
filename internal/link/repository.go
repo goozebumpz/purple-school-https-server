@@ -104,3 +104,12 @@ func (repo *Repository) GetLinks(limit, offset uint) []Link {
 
 	return links
 }
+
+func (repo *Repository) Count() int64 {
+	var count int64
+	repo.Database.Table("links").
+		Where("deleted_at is null").
+		Count(&count)
+
+	return count
+}
