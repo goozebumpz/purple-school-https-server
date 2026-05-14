@@ -1,6 +1,7 @@
 package link
 
 import (
+	"fmt"
 	"gorm.io/gorm"
 	"net/http"
 	"purple-school/configs"
@@ -27,9 +28,9 @@ func NewLinksHandler(router *http.ServeMux, deps HandlerDeps) {
 	}
 
 	router.HandleFunc("GET /{hash}", handler.GoTo())
-	router.Handle("POST /link", middleware.Token(handler.Create()))
-	router.Handle("PATCH /link/{id}", middleware.Token(handler.Update()))
-	router.Handle("DELETE /link/{id}", middleware.Token(handler.Delete()))
+	router.Handle("POST /link", middleware.Token(handler.Create(), deps.Config))
+	router.Handle("PATCH /link/{id}", middleware.Token(handler.Update(), deps.Config))
+	router.Handle("DELETE /link/{id}", middleware.Token(handler.Delete(), deps.Config))
 }
 
 func (h *Handler) GoTo() http.HandlerFunc {
@@ -49,6 +50,10 @@ func (h *Handler) GoTo() http.HandlerFunc {
 func (h *Handler) Create() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		body, err := req.HandleBody[CreateRequest](w, r)
+
+		if parsedEmail, ok := r.Context().Value(middleware.ContextEmailKey).(string); ok {
+			fmt.Println(parsedEmail)
+		}
 
 		if err != nil {
 			return

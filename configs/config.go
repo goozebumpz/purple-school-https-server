@@ -24,6 +24,14 @@ func LoadConfig() *Config {
 
 	if err != nil {
 		log.Println("Error loading .env file, using default config")
+		return &Config{
+			Db: DbConfig{
+				DSN: "",
+			},
+			AuthConfig: AuthConfig{
+				Secret: "",
+			},
+		}
 	}
 
 	return &Config{

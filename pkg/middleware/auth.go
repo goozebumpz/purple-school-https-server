@@ -1,18 +1,41 @@
 package middleware
 
 import (
-	"fmt"
+	"context"
 	"net/http"
+	"purple-school/configs"
+	"purple-school/pkg/jwt"
 	"strings"
 )
 
-func Token(next http.Handler) http.Handler {
+type key string
+
+const (
+	ContextEmailKey key = "ContextEmailKey"
+)
+
+func writeUnauthed(w http.ResponseWriter) {
+	w.WriteHeader(http.StatusUnauthorized)
+	w.Write([]byte(http.StatusText(http.StatusUnauthorized)))
+}
+
+func Token(next http.Handler, config *configs.Config) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		tokenStr := r.Header.Get("Authorization")
 		token := strings.Split(tokenStr, " ")[1]
+		if token == "" {
+			writeUnauthed(w)
+			return
+		}
 
-		fmt.Println(token)
+		isValid, data := jwt.NewJWT(config.AuthConfig.Secret).Parse(token)
+		if !isValid {
+			writeUnauthed(w)
+			return
+		}
 
-		next.ServeHTTP(w, r)
+		ctx := context.WithValue(r.Context(), ContextEmailKey, data.Email)
+		req := r.WithContext(ctx)
+		next.ServeHTTP(w, req)
 	})
 }

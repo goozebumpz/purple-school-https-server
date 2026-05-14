@@ -90,3 +90,17 @@ func (repo *Repository) ExistLink(id uint) (bool, error) {
 
 	return link != nil, nil
 }
+
+func (repo *Repository) GetLinks(limit, offset uint) []Link {
+	var links []Link
+
+	repo.Database.
+		Table("links").
+		Where("deleted_at is null").
+		Order("id asc").
+		Limit(int(limit)).
+		Offset(int(offset)).
+		Scan(&links)
+
+	return links
+}
