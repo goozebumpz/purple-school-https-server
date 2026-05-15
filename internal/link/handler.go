@@ -163,6 +163,12 @@ func (h *Handler) GetLinks() http.HandlerFunc {
 		}
 
 		links := h.Repository.GetLinks(uint(limit), uint(offset))
-		res.JSON(w, links, http.StatusOK)
+		total := h.Repository.Count()
+
+		fmt.Println(links)
+		fmt.Println(total)
+		response := GetLinkResponse{links, total}
+
+		res.JSON(w, response, http.StatusOK)
 	}
 }
